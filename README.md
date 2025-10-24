@@ -17,10 +17,10 @@ Add this code before the closing `</body>` tag:
 
 ```html
 <!-- Sand Cloud Chat Widget -->
-<link rel="stylesheet" href="path/to/sancloud-widget.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ivsmani/scw/sancloud-widget.css" />
 <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"></script>
 <script src="https://unpkg.com/dompurify@3.0.6/dist/purify.min.js"></script>
-<script src="path/to/sancloud-widget.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ivsmani/scw/sancloud-widget.js"></script>
 ```
 
 ### 3. Configure (Optional)
@@ -28,7 +28,7 @@ Add this code before the closing `</body>` tag:
 ```html
 <script>
   window.SandCloudChat = {
-    logoUrl: "https://your-domain.com/logo.png",
+    logoUrl: "https://your-domain.com/logo.png", // Optional
     webhookUrl: "https://your-webhook-url.com/chat",
   };
 </script>
