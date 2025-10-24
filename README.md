@@ -17,10 +17,10 @@ Add this code before the closing `</body>` tag:
 
 ```html
 <!-- Sand Cloud Chat Widget -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ivsmani/scw/sancloud-widget.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ivsmani/scw/sancloud-widget.min.css" />
 <script src="https://cdn.jsdelivr.net/npm/marked/lib/marked.umd.js"></script>
 <script src="https://unpkg.com/dompurify@3.0.6/dist/purify.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ivsmani/scw/sancloud-widget.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ivsmani/scw/sancloud-widget.min.js"></script>
 ```
 
 ### 3. Configure (Optional)
