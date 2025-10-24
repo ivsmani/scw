@@ -1,17 +1,8 @@
 # Sand Cloud Chat Widget
 
-A modern chat widget with Markdown support for any website.
-
 ## Installation
 
-### 1. Download Files
-
-Download these files to your website:
-
-- `sancloud-widget.js`
-- `sancloud-widget.css`
-
-### 2. Add to Your Website
+### 1. Add to Your Website
 
 Add this code before the closing `</body>` tag:
 
@@ -23,7 +14,7 @@ Add this code before the closing `</body>` tag:
 <script src="https://cdn.jsdelivr.net/gh/ivsmani/scw/sancloud-widget.min.js"></script>
 ```
 
-### 3. Configure (Optional)
+### 2. Configure
 
 ```html
 <script>
@@ -35,4 +26,4 @@ Add this code before the closing `</body>` tag:
 <script src="path/to/sancloud-widget.js"></script>
 ```
 
-That's it! The widget will automatically appear on your website.
+That's it! The widget will appear on your website.
