@@ -23,7 +23,6 @@ Add this code before the closing `</body>` tag:
     webhookUrl: "https://your-webhook-url.com/chat",
   };
 </script>
-<script src="path/to/sancloud-widget.js"></script>
 ```
 
 That's it! The widget will appear on your website.
