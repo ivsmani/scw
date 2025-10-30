@@ -12,6 +12,8 @@ class SandCloudChatWidget {
     this.logoUrl =
       window.SandCloudChat?.logoUrl ||
       "https://postscript-mms-files.s3.amazonaws.com/1STOnZ-2uQqgT5sXKVkDpCKEJ665g.png";
+    this.welcomeMessage =
+      window.SandCloudChat?.welcomeMessage || "Hi! I'm here to assist you.";
     this.emojiList = [
       "😀",
       "😃",
@@ -81,6 +83,7 @@ class SandCloudChatWidget {
     this.createWidget();
     this.loadSession();
     this.bindEvents();
+    this.createMenuPopover();
     this.addWelcomeMessage();
   }
 
@@ -103,6 +106,9 @@ class SandCloudChatWidget {
               <img src="${this.logoUrl}" alt="Sand Cloud" style="width: 100%; height: 100%; object-fit: contain;" />
             </div>
           </div>
+          <button class="sancloud-chat-minimize" id="chat-new-session" aria-label="Start new chat">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#92919B" viewBox="0 0 256 256"><path d="M229.66,58.34l-32-32a8,8,0,0,0-11.32,0l-96,96A8,8,0,0,0,88,128v32a8,8,0,0,0,8,8h32a8,8,0,0,0,5.66-2.34l96-96A8,8,0,0,0,229.66,58.34ZM124.69,152H104V131.31l64-64L188.69,88ZM200,76.69,179.31,56,192,43.31,212.69,64ZM224,128v80a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V48A16,16,0,0,1,48,32h80a8,8,0,0,1,0,16H48V208H208V128a8,8,0,0,1,16,0Z"></path></svg>
+          </button>
           <button class="sancloud-chat-minimize" id="chat-minimize">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#92919B" viewBox="0 0 256 256"><path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path></svg>
           </button>
@@ -158,15 +164,41 @@ class SandCloudChatWidget {
     // Toggle button
     this.toggleButton.addEventListener("click", () => this.toggleChat());
 
-    // Menu button
-    document
-      .getElementById("chat-menu")
-      .addEventListener("click", () => this.closeChat());
+    // Menu button -> toggle popover
+    const menuButton = document.getElementById("chat-menu");
+    menuButton.addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.toggleMenuPopover();
+    });
+
+    // Close popover on outside click
+    document.addEventListener("click", (e) => {
+      if (this.menuPopover && this.menuPopover.style.display === "block") {
+        if (
+          !this.menuPopover.contains(e.target) &&
+          !menuButton.contains(e.target)
+        ) {
+          this.hideMenuPopover();
+        }
+      }
+    });
+
+    // Close popover on Escape
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        this.hideMenuPopover();
+      }
+    });
 
     // Minimize button
     document
       .getElementById("chat-minimize")
       .addEventListener("click", () => this.closeChat());
+
+    // New chat button
+    document
+      .getElementById("chat-new-session")
+      .addEventListener("click", () => this.restartChatSession());
 
     // Send button and Enter key
     const sendButton = document.getElementById("chat-send");
@@ -249,6 +281,122 @@ class SandCloudChatWidget {
     emojiPicker.classList.toggle("show");
   }
 
+  createMenuPopover() {
+    // Create popover container
+    this.menuPopover = document.createElement("div");
+    this.menuPopover.id = "chat-menu-popover";
+    this.menuPopover.setAttribute("role", "menu");
+    this.menuPopover.className = "sancloud-menu-popover";
+
+    // Build menu items
+    const endBtn = document.createElement("button");
+    endBtn.type = "button";
+    endBtn.textContent = "Clear chat";
+    endBtn.className = "sancloud-menu-item";
+    endBtn.addEventListener("click", () => {
+      this.endChatSession();
+      this.hideMenuPopover();
+    });
+
+    const downloadBtn = document.createElement("button");
+    downloadBtn.type = "button";
+    downloadBtn.textContent = "Download transcript";
+    downloadBtn.className = "sancloud-menu-item";
+    downloadBtn.addEventListener("click", () => {
+      this.downloadTranscript();
+      this.hideMenuPopover();
+    });
+
+    this.menuPopover.appendChild(endBtn);
+    this.menuPopover.appendChild(downloadBtn);
+
+    // Append to chat window so it's positioned correctly relative to it
+    this.chatWindow.appendChild(this.menuPopover);
+  }
+
+  toggleMenuPopover() {
+    if (!this.menuPopover) return;
+    const isShown = this.menuPopover.classList.contains("show");
+    if (isShown) {
+      this.menuPopover.classList.remove("show");
+      return;
+    }
+
+    // Position popover under the menu button inside the chat window
+    const menuButton = document.getElementById("chat-menu");
+    const header = this.chatWindow.querySelector(".sancloud-chat-header");
+    if (menuButton && header) {
+      const headerRect = header.getBoundingClientRect();
+      const btnRect = menuButton.getBoundingClientRect();
+      const top = btnRect.bottom - headerRect.top + 8; // gap below button
+      const left = btnRect.left - headerRect.left; // align left
+      this.menuPopover.style.top = `${top}px`;
+      this.menuPopover.style.left = `${left}px`;
+    }
+
+    this.menuPopover.classList.add("show");
+  }
+
+  hideMenuPopover() {
+    if (this.menuPopover) {
+      this.menuPopover.classList.remove("show");
+    }
+  }
+
+  endChatSession() {
+    // Clear session id and stored session
+    try {
+      localStorage.removeItem("sandcloud-chat-session");
+    } catch (_) {}
+    this.sessionId = null;
+
+    // Clear messages
+    const messagesContainer = document.getElementById("chat-messages");
+    if (messagesContainer) {
+      messagesContainer.innerHTML = "";
+    }
+
+    // Optionally show a fresh welcome message after ending chat
+    this.addWelcomeMessage();
+  }
+
+  restartChatSession() {
+    // Clear current chat and session, then focus input for a fresh start
+    this.endChatSession();
+    const input = document.getElementById("chat-input");
+    if (input) {
+      input.focus();
+    }
+  }
+
+  downloadTranscript() {
+    const messagesContainer = document.getElementById("chat-messages");
+    if (!messagesContainer) return;
+
+    const lines = [];
+    const nodes = messagesContainer.querySelectorAll(".sancloud-chat-message");
+    nodes.forEach((node) => {
+      const isBot = node.classList.contains("bot");
+      const isCustomer = node.classList.contains("customer");
+      // Extract text content to avoid HTML/markdown
+      const text = node.textContent || "";
+      const prefix = isCustomer ? "You:" : isBot ? "Bot:" : "";
+      lines.push(prefix ? `${prefix} ${text}` : text);
+    });
+
+    const content = lines.join("\n");
+    const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const ts = new Date().toISOString().replace(/[:.]/g, "-");
+    a.href = url;
+    a.download = `sancloud-chat-transcript-${ts}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   showAttachmentPlaceholder() {
     this.addMessage("bot", "File attachment feature coming soon! 📎", true);
   }
@@ -276,7 +424,7 @@ class SandCloudChatWidget {
     const messagesContainer = document.getElementById("chat-messages");
     const welcomeDiv = document.createElement("div");
     welcomeDiv.className = "sancloud-chat-message bot";
-    welcomeDiv.textContent = "Hi! I'm here to assist you.";
+    welcomeDiv.textContent = this.welcomeMessage;
     messagesContainer.appendChild(welcomeDiv);
   }
 
